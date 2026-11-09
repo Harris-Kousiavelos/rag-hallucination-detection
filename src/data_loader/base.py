@@ -4,21 +4,21 @@ from abc import ABC, abstractmethod
 @dataclass
 class Example:
     id: str
-    source_id: str
-    task_type: str
     prompt: str
     source_info: str
     response: str
     labels: list
-    model: str
-    split: str
-    quality: str
+    split: str = None
+    source_id: str = None
+    task_type: str = None
+    model: str = None
+    quality: str = None
 
 class DataLoader(ABC):
     # Steps 1., 2. and 3. are dataset specific methods and therefore are defined in their respective files
 
     @abstractmethod
-    def read_data(self, filepaths):
+    def read_data(self, folder_path):
         """
         1. data reader:
                     Iterates the dataset line by line and returns each row/entry.
@@ -48,6 +48,9 @@ class DataLoader(ABC):
         """
         4. examples filtering:
                      Removes examples so that only necessary ones are present for the project's specific goal.
+                     It filters on split, model and task_type, which are optional fields of the example,
+                     because not every dataset provides them.
+                     A filter left as None is ignored.
         """
         filtered_examples = []
 
@@ -58,9 +61,9 @@ class DataLoader(ABC):
                 filtered_examples.append(example)
         return filtered_examples
 
-    def load_data(self, paths, split=None, model=None, task_type=None):
+    def load_data(self, folder_path, split=None, model=None, task_type=None):
         # Runs all 4 steps in their respective order
-        data = self.read_data(paths)
+        data = self.read_data(folder_path)
         linked_data = self.join_files(data)
         examples = self.convert_into_example(linked_data)
         structured_data = self.filter(examples, split, model, task_type)
