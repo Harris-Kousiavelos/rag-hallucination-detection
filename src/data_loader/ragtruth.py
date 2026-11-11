@@ -53,24 +53,30 @@ class RAGTruthLoader(DataLoader):
         examples = []
 
         for entry in data:
+            source_info_str = entry['source_info']  # in order not to mutate the parameter-dictionary
+            qa_question = None
+
             # In case the task type is a QA or Data2txt, and thus has a dictionary as the source_info's value,
             # it needs to be transformed to match the general Example signature defined in base.py
             if entry['task_type'] == 'QA':
-                entry['source_info'] = entry['source_info']['passages']
+                source_info_str = entry['source_info']['passages']
+                qa_question = entry['source_info']['question']
             elif entry['task_type'] == 'Data2txt':
-                entry['source_info'] = str(entry['source_info'])
+                source_info_str = str(entry['source_info'])
 
             # Create example from the linked data dictionaries
             example = Example(entry['id'],
                               entry['prompt'],
-                              entry['source_info'],
+                              source_info_str,
                               entry['response'],
                               entry['labels'],
                               entry['split'],
                               entry['source_id'],
                               entry['task_type'],
                               entry['model'],
-                              entry['quality']
+                              entry['quality'],
+                              qa_question
                               )
             examples.append(example)
         return examples
+
